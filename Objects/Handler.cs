@@ -59,6 +59,7 @@ namespace NeonCapture.Objects
             Stopping
         }
         RecordStatus recordStatus = RecordStatus.Stopped;
+        bool nudgeSent = false;
 
         internal enum WaitingStatus
         {
@@ -98,12 +99,12 @@ namespace NeonCapture.Objects
                     StatusText.i.SetStatus($"Auto-save in {(int)endingTimer + 1}...");
             }
 
-            if (recordStatus == RecordStatus.RecordRecieved)
+            if (recordStatus == RecordStatus.RecordRecieved && !nudgeSent)
             {
                 recordTimer -= Time.unscaledDeltaTime;
                 if (recordTimer <= 0)
                 {
-                    recordTimer = .05f;
+                    nudgeSent = true;
                     SendStartRecord();
                 }
             }
@@ -164,6 +165,8 @@ namespace NeonCapture.Objects
 
         public void SendStartRecord()
         {
+            recordStatus = RecordStatus.RecordSent;
+            recordTimer = .05f;
             if (Settings.StallLoad.Value)
                 Hooks.showWaiting = true;
             else
@@ -277,6 +280,7 @@ namespace NeonCapture.Objects
             usedBonus = null;
 
             endingTimer = 0;
+            nudgeSent = false;
             recordStatus = RecordStatus.Stopping;
             waitingStatus = WaitingStatus.Save;
             dontSave = false;
@@ -478,7 +482,6 @@ namespace NeonCapture.Objects
                                     }
 
                                     recordStatus = RecordStatus.RecordRecieved;
-                                    recordTimer = .05f;
                                     return;
                                 }
                             case "StopRecord":
